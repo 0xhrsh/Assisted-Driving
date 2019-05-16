@@ -94,8 +94,11 @@ while i<len(data["gyro"]):
 	j+=1
 
 data_gyro=to_categorical(data_gyro)
+loaded_model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
+loaded_model.fit(X,data_gyro,epochs=10,batch_size=7)
 
-core = loaded_model.evaluate(X, data_gyro, verbose=0)
+
+score = loaded_model.evaluate(X, data_gyro, verbose=0)
 print("%s: %.2f%%" % (loaded_model.metrics_names[1], score[1]*100))
 
 
