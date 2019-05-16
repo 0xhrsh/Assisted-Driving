@@ -49,13 +49,17 @@ def draw(eyes,images):
 	#Yavg=int((eyes[0][1]+eyes[1][1])/2)
 	#print(Yavg)
 	n=len(eyes)
+	if n < 2:
+		print("machine")
+	else:
+		print("human")
 	for i in range(0,n):
-		cv2.circle(images[i],(eyes[i][0],eyes[i][1]),9,(0,0,150),-1)
+		cv2.circle(images[i],(eyes[i][0],eyes[i][1]),5,(0,0,150),-1)
 
-def refine(img):
+def refine(img,TH):
 	img =cv2.medianBlur(img, 5)
 	
-	_,img = cv2.threshold(img, 69,255, cv2.THRESH_BINARY)
+	_,img = cv2.threshold(img, TH,255, cv2.THRESH_BINARY)
 	img =cv2.erode(img,None,iterations=2)
 	img =cv2.dilate(img,None,iterations=4)
 	return img
@@ -68,9 +72,9 @@ eye_cascade=cv2.CascadeClassifier("haarcascade_eye.xml")
 
 cap=cv2.VideoCapture(0)
 cv2.namedWindow("Image")
-
+#cv2.createTrackbar('Threshold','image',0,255,None)
+Threshold=69
 while True:
-	#cap=cv2.VideoCapture(0)
 	_,image=cap.read()
 	# Reading the image
 	#image=cv2.imread("HARSH.jpg")
@@ -94,7 +98,7 @@ while True:
 			cv2.rectangle(face_img,(eye[0],eye[1]),(eye[0]+eye[2],eye[1]+eye[3]),(0,255,0),1)
 			eye_image=face_img[eye[1]:eye[1]+int(eye[3]),eye[0]:eye[0]+int(eye[2])]
 			gray_eye_image=gray_face[eye[1]:eye[1]+int(eye[3]),eye[0]:eye[0]+int(eye[2])]
-			gray_eye_image =refine(gray_eye_image)
+			gray_eye_image =refine(gray_eye_image,Threshold)
 		
 			# Uncomment the following part to remove the influence of eyebrows  (BUGS PRESENT!!!)
 
@@ -105,6 +109,6 @@ while True:
 			eye_images.append(eye_image)
 		draw(eyes_cod,eye_images)
 		cv2.imshow("Image",image)
-		if cv2.waitKey(1) & 0xFF == ord('q'):
-			break
+	if cv2.waitKey(1) & 0xFF == ord('q'):
+		break
 cap.release()
