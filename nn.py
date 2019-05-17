@@ -11,8 +11,12 @@ import glob
 from keras.utils import to_categorical
 
 
+# This Code is used to train the NN for the first time
+# using this the NN can be trained on a video file, the time intervals are calculated
+# and are not advised to be tempered with without proper calculations
+
 count = 0
-videoFile = "c4e926af-43c5f8d3.mov"
+videoFile = "c4e926af-43c5f8d3.mov"  # Rename the video file accordingly
 cap = cv2.VideoCapture(videoFile)   # capturing the video from the given path
 frameRate = cap.get(5) #frame rate
 print(frameRate)
@@ -28,7 +32,7 @@ while(cap.isOpened()):
 cap.release()
 
 
-f=open('c4e926af-43c5f8d3.json','r')
+f=open('c4e926af-43c5f8d3.json','r') # Rename the File including timestamp marked data accordingly
 x=f.read()
 locations =dict(course=f.read(),timestamp=f.read(),speed=f.read())
 gyro=dict(z=f.read(),y=f.read(),x=f.read(),timestamp=f.read())
@@ -56,18 +60,12 @@ X=np.zeros((n,200,66,3))
 i=0
 for image in images:
 	img=cv2.imread(image)
-	#image=cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	img=cv2.resize(img,(66,200))
-	#print(np.shape(img))
-#	cv2.imshow("IMAGE",img)
 	img=np.expand_dims(img, axis=0)
 	X[i]=img
-#	cv2.waitKey(0)
-	#print(np.shape(X[i]))
 	i+=1
 X=np.array(X/255)
-#print("gyro")
-#print(len(data_gyro))
+
 
 data_gyro=to_categorical(data_gyro)
 
@@ -82,9 +80,13 @@ data_gyro=to_categorical(data_gyro)
 #model.load_weights("weights.h5")
 #print("Loaded model from disk")
 
+
+# Defining Model here, the model is inspired from NVIDIA's End to End deep learning paper
+# read the paper to understand the intention
+# It is a sequential model with 5 convulational layers and a NN with 4 dense layers
+
 model=Sequential()
 model.add(Conv2D(32, (3, 3), input_shape=(200,66,3),activation='relu'))
-
 model.add(MaxPooling2D(pool_size=(2,2)))
 model.add(Conv2D(36,(5,5),activation="relu",padding='same'))
 model.add(MaxPooling2D(pool_size=(2,2)))
@@ -101,11 +103,10 @@ model.add(Dropout(0.15))
 model.add(Dense(50,activation='sigmoid'))
 model.add(Dense(10,activation='tanh'))
 model.add(Dense(2,activation='sigmoid'))
+print('Compiling the model...')
 model.compile(loss='categorical_crossentropy', optimizer='adam',metrics=['accuracy'])
-i=0
 model.fit(X,data_gyro,epochs=30,batch_size=15)
-#saving weights in a file
-#model.save_weights('weights.txt')
+print("Predicting Scores")
 scores=model.evaluate(X,data_gyro)
 print(scores[1]*100)
 
